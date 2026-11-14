@@ -211,10 +211,12 @@ function tableCellData(cell) {
   const paragraphs = asArray(cell.p)
     .map((paragraph) => cleanText(textFromNode(paragraph)))
     .filter(Boolean);
+  const gridSpan = Math.max(1, Number(cell.tcPr?.gridSpan?.['@_val']) || 1);
 
   return {
     text: paragraphs.join(' | '),
     parts: splitCellParts(paragraphs),
+    gridSpan,
   };
 }
 
@@ -244,9 +246,11 @@ function collectWordTables(node, tables = []) {
 }
 
 function extractTables(document) {
-  return collectWordTables(document).map((table) =>
-    asArray(table.tr).map((row) => asArray(row.tc).map(tableCellData)),
-  );
+  return collectWordTables(document).map((table) => asArray(table.tr).map((row) => {
+    const cells = asArray(row.tc).map(tableCellData);
+    cells.gridBefore = Math.max(0, Number(row.trPr?.gridBefore?.['@_val']) || 0);
+    return cells;
+  }));
 }
 
 function isScheduleTable(rows) {
@@ -390,17 +394,44 @@ async function getDocxFiles() {
     });
 }
 
+function weekdayGridPositions(header) {
+  const positions = new Map();
+  let gridPosition = Math.max(0, Number(header.gridBefore) || 0);
+
+  for (const cell of header) {
+    const label = cleanText(cellText(cell)).toLocaleLowerCase('ru');
+    const weekdayIndex = WEEKDAYS.findIndex((weekday) => label.startsWith(weekday.toLocaleLowerCase('ru')));
+    const span = Math.max(1, Number(cell?.gridSpan) || 1);
+
+    if (weekdayIndex >= 0) {
+      for (let offset = 0; offset < span; offset += 1) {
+        positions.set(gridPosition + offset, weekdayIndex);
+      }
+    }
+
+    gridPosition += span;
+  }
+
+  return positions;
+}
+
 function analyzeSchedule(schedule, teacherQuery) {
   const matches = [];
   const header = (schedule.rows[0] || []).map(cellText);
+  const weekdaysByGridPosition = weekdayGridPositions(schedule.rows[0] || []);
 
   for (let rowIndex = 1; rowIndex < schedule.rows.length; rowIndex += 1) {
     const row = schedule.rows[rowIndex];
     const lesson = cleanText(cellText(row[0]) || '');
     const previousLesson = findPreviousLesson(schedule.rows, rowIndex);
+    let gridPosition = Math.max(0, Number(row.gridBefore) || 0);
 
-    for (let columnIndex = 1; columnIndex < row.length; columnIndex += 1) {
+    for (let columnIndex = 0; columnIndex < row.length; columnIndex += 1) {
       const cell = row[columnIndex];
+      const weekdayIndex = weekdaysByGridPosition.get(gridPosition);
+      gridPosition += Math.max(1, Number(cell?.gridSpan) || 1);
+      if (columnIndex === 0 || weekdayIndex === undefined) continue;
+
       const parts = cell?.parts?.length ? cell.parts : [{ text: cellText(cell), hours: 2, split: false }];
       const splitByAdjacentRow = isSplitByAdjacentRow(schedule.rows, rowIndex, columnIndex, lesson);
 
@@ -408,8 +439,8 @@ function analyzeSchedule(schedule, teacherQuery) {
         const text = cleanText(part.text);
         if (!text || !matchesTeacher(text, teacherQuery)) continue;
 
-        const weekday = header[columnIndex] || WEEKDAYS[columnIndex - 1] || `День ${columnIndex}`;
-        const date = schedule.weekStart ? addDays(schedule.weekStart, columnIndex - 1) : null;
+        const weekday = WEEKDAYS[weekdayIndex] || header[columnIndex] || `День ${columnIndex}`;
+        const date = schedule.weekStart ? addDays(schedule.weekStart, weekdayIndex) : null;
         const hours = splitByAdjacentRow ? 1 : part.hours;
         matches.push({
           lesson: lesson || previousLesson,

@@ -4,6 +4,7 @@ node_modules/
 !.env.example
 *.docx
 !schedules/*.docx
+schedules/~$*.docx
 Старое/
 output/
 coverage/
