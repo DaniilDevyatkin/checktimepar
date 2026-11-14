@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#edf2f4">
+    <title>Помощник заполнения журнала</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="masthead">
+        <div class="source-stat" aria-live="polite">
+          <strong id="fileCount">Загружаю файлы с расписанием…</strong>
+        </div>
+      </header>
+
+      <section class="search-panel" aria-label="Параметры поиска">
+        <form id="searchForm" class="search-form">
+          <label class="field field-group">
+            <span>Группа</span>
+            <input id="groupInput" name="group" list="groupsList" placeholder="Например: 1А" autocomplete="off" required>
+            <datalist id="groupsList"></datalist>
+          </label>
+
+          <label class="field field-teacher">
+            <span>Преподаватель</span>
+            <input id="teacherInput" name="teacher" value="Девяткин" placeholder="Фамилия или ФИО" autocomplete="off" required>
+          </label>
+
+          <button class="button button-primary" type="submit">Посчитать часы <span aria-hidden="true">↗</span></button>
+        </form>
+      </section>
+
+      <section id="resultPanel" class="result-area hidden" aria-live="polite">
+        <header class="report-heading">
+          <div class="report-title">
+            <h2><span id="reportGroup">Группа</span><span class="report-divider" aria-hidden="true"></span><span id="reportTeacher">Преподаватель</span></h2>
+          </div>
+          <div class="total-hours" aria-label="Всего часов">
+            <span>ВСЕГО ЧАСОВ</span>
+            <strong><span id="totalHours">0</span><i>ч</i></strong>
+          </div>
+        </header>
+
+        <div id="skippedNotice" class="skipped-notice hidden" role="status"></div>
+        <div id="weekList" class="week-list"></div>
+
+        <section id="subjectSummary" class="subject-summary hidden">
+          <div class="subject-table-head" aria-hidden="true">
+            <span>ПРЕДМЕТ</span>
+            <span>ЧАСОВ ЗА ВСЕ РАСПИСАНИЯ</span>
+          </div>
+          <div id="subjectList" class="subject-list"></div>
+        </section>
+      </section>
+
+      <section id="emptyState" class="empty-state">
+        <div class="empty-ruler" aria-hidden="true"><span>ПН</span><span>ВТ</span><span>СР</span><span>ЧТ</span><span>ПТ</span><span>СБ</span></div>
+        <div class="empty-copy">
+          <p class="eyebrow">ПОИСК ПО ВСЕМ РАСПИСАНИЯМ</p>
+          <h2>Соберите часы по неделям</h2>
+          <p>Укажите группу и преподавателя. Совпадения появятся в сетке дней и пар, а внизу отчёта будет сумма часов отдельно по каждому предмету.</p>
+        </div>
+        <div class="empty-note"><span>01</span><p>Даты и номера пар берутся из расписания и исходного файла.</p></div>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

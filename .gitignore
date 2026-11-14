@@ -1,0 +1,13 @@
+node_modules/
+.env
+.env.*
+!.env.example
+*.docx
+!schedules/*.docx
+Старое/
+output/
+coverage/
+*.log
+desktop.ini
+.DS_Store
+Thumbs.db

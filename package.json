@@ -1,0 +1,18 @@
+{
+  "name": "schedule-journal-helper",
+  "version": "1.0.0",
+  "description": "Local web helper for counting teacher hours in DOCX schedules",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "fast-xml-parser": "^5.8.0",
+    "jszip": "^3.10.1"
+  },
+  "devDependencies": {
+    "playwright": "^1.60.0"
+  }
+}
